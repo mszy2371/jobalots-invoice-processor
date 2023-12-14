@@ -2,7 +2,7 @@ import tkinter
 from tkinter import ttk
 from tkinter import filedialog as fd
 from tkinter.messagebox import showinfo
-from invoice_processor import InvoiceProcessor
+from app.invoice_processor import InvoiceProcessor
 
 # create the root window
 root = tkinter.Tk()

@@ -111,7 +111,7 @@ class InvoiceProcessor:
         df_combined = pd.DataFrame()
         output_csv_path = os.path.join(
             os.path.dirname(os.path.realpath(__file__)),
-            f"data_for_{invoice_no}_from_{invoice_date}.csv",
+            f"output_data/data_for_{invoice_no}_from_{invoice_date}.csv",
         )
         for item in invoice_list:
             manifest_id = item[1]
@@ -147,3 +147,5 @@ class InvoiceProcessor:
                 f.write(df.to_csv())
 
 
+if __name__ == "__main__":
+    InvoiceProcessor().add_data_to_main_table("app/input_data/invoice_JL200974.pdf", "app/output_data/main_table.csv")
