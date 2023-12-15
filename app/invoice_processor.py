@@ -134,18 +134,15 @@ class InvoiceProcessor:
         invoice_date = self.get_invoice_date(invoice_str)
         invoice_no = self.get_invoice_no(invoice_str)
         df = self.process_invoice_data(invoice_list, invoice_no, invoice_date)
-        if os.path.exists(main_table_path):
+        if os.path.exists(main_table_path) and os.path.getsize(main_table_path) > 0:
             df_main = pd.read_csv(main_table_path, index_col=0)
             if invoice_no in df_main["Invoice No"].values:
                 print(f"Data for invoice {invoice_no} already exists in main table.")
                 return
-            df_main = df_main._append(df, ignore_index=True)
-            with open(main_table_path, "w") as f:
-                f.write(df_main.to_csv())
-        else:
-            with open(main_table_path, "w") as f:
+            if not df_main.empty:
+                df_main = df_main._append(df, ignore_index=True)
+                with open(main_table_path, "w") as f:
+                    f.write(df_main.to_csv())
+                    return
+        with open(main_table_path, "w") as f:
                 f.write(df.to_csv())
-
-
-if __name__ == "__main__":
-    InvoiceProcessor().add_data_to_main_table("app/input_data/invoice_JL200974.pdf", "app/output_data/main_table.csv")
