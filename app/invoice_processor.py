@@ -26,7 +26,6 @@ class InvoiceProcessor:
             page_tables = page.find_tables(
                 snap_tolerance=2,
             )
-
             for table in page_tables:
                 item = table.extract()
                 if len(item) > 2:
@@ -64,7 +63,12 @@ class InvoiceProcessor:
         invoice_item_price = self.get_invoice_item_price(invoice_item)
         manifest_items_quantity = self.get_manifest_items_quantity(manifest_path)
         return round((invoice_item_price / manifest_items_quantity), 2)
-
+    
+    def get_manifest_item_tax_value(self, invoice_item: list, manifest_path: str) -> float:
+        manifest_items_quantity = self.get_manifest_items_quantity(manifest_path)
+        invoice_item_tax_value = float(invoice_item[-3].split("£")[1])
+        return round((invoice_item_tax_value / manifest_items_quantity), 2)
+        
     def retrieve_manifest(self, manifest_id: str) -> str:
         url = f"https://static.bodysocks.net/joblots/manifests/{manifest_id}.csv"
         page = requests.get(url)
@@ -78,7 +82,8 @@ class InvoiceProcessor:
         invoice_no: str,
         invoice_item: list,
         input_csv_path: str,
-        manifest_item_price,
+        manifest_item_price: float,
+        manifest_item_tax_value: float,
     ) -> pd.DataFrame:
         manifest_id = invoice_item[1]
         with open(input_csv_path, "r", encoding="utf-8") as csv_reader, open(
@@ -88,23 +93,28 @@ class InvoiceProcessor:
             writer = csv.writer(csv_writer)
             for index, row in enumerate(reader):
                 if index == 0:
-                    row.append("Price")
                     row.append("Manifest No")
                     row.append("Invoice No")
                     row.append("Invoice Date")
+                    row.append("Price per item")
+                    row.append("Tax per item")
                     writer.writerow(row)
                 elif len(row[0]) < 2:
                     continue
                 else:
-                    row.append(manifest_item_price)
                     row.append(manifest_id)
                     row.append(invoice_no)
                     row.append(invoice_date)
+                    row.append(manifest_item_price)
+                    row.append(manifest_item_tax_value)
                     writer.writerow(row)
         df = pd.read_csv(self.output_manifest_path, encoding="utf-8")
         df.drop("Unit Weight (g)", axis=1, inplace=True)
         df.drop("RRP", axis=1, inplace=True)
         df.drop("Total", axis=1, inplace=True)
+        df["Price per item + tax"] = round((df["Price per item"] + df["Tax per item"]), 2)
+        df["Total tax"] = round((df["Tax per item"] * df["Stock Quantity"]), 2)
+        df["Total price netto"] = round((df["Price per item"] * df["Stock Quantity"]), 2)
         return df
 
     def process_invoice_data(self, invoice_list: str, invoice_no: str, invoice_date: str) -> dict:
@@ -118,7 +128,7 @@ class InvoiceProcessor:
             manifest_path = self.retrieve_manifest(manifest_id)
             manifest_item_price = self.get_manifest_item_price(item, manifest_path)
             df = self.convert_manifest(
-                invoice_date, invoice_no, item, manifest_path, manifest_item_price
+                invoice_date, invoice_no, item, manifest_path, manifest_item_price, manifest_item_tax_value
             )
             df_combined = df_combined._append(df, ignore_index=True)
         with open(output_csv_path, "w") as f:

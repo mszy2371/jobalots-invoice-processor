@@ -1,0 +1,11 @@
+<html>
+    <head>
+        <title>404 Error</title>
+    </head>
+    <body>
+        <div class="container" style="text-align: center; margin-top: 150px;">
+            <img src="https://cdn.shopify.com/s/files/1/0579/0603/6936/files/Logo-_transparant_---max_fa3fefca-8274-4f48-b45b-688bec45c029_150x150.png?v=1626086228">
+            <h1>Unfortunately the manifest you are looking for does not exist.</h1>
+        </div>
+    </body>
+</html>
