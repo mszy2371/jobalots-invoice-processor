@@ -4,15 +4,19 @@ import pandas as pd
 import os
 import csv
 import sys
+import logging
+
+logger = logging.getLogger(__name__)
 
 class InvoiceProcessor:
-    def __init__(self):
+    def __init__(self, standard_tax_rate=0.2):
         self.input_manifest_path =  os.path.join(
             os.path.dirname(os.path.realpath(__file__)), "input.csv"
         )
         self.output_manifest_path = os.path.join(
             os.path.dirname(os.path.realpath(__file__)), "manifest.csv"
         )
+        self.standard_tax_rate = standard_tax_rate
     
     def convert_invoice_to_str_and_list_tuple(
         self, invoice_path: str
@@ -40,7 +44,7 @@ class InvoiceProcessor:
         invoice_no = invoice_str.split("INVOICE ")[1].split("\n")[0]
         return invoice_no
 
-    def get_invoice_item_price(self, invoice_item: list) -> float:
+    def get_invoice_item_price(self, invoice_item: list) -> float | bool:
         price_str = invoice_item[-1]
         try:
             return float(price_str.split("£")[1])
@@ -48,7 +52,7 @@ class InvoiceProcessor:
             return 0.0
 
     def get_manifest_items_quantity(self, manifest_path) -> int:
-        total = 0
+        total = 1
         with open(manifest_path, "r", encoding="utf-8") as csv_reader:
             reader = csv.reader(csv_reader)
             for index, row in enumerate(reader):
@@ -66,15 +70,43 @@ class InvoiceProcessor:
     
     def get_manifest_item_tax_value(self, invoice_item: list, manifest_path: str) -> float:
         manifest_items_quantity = self.get_manifest_items_quantity(manifest_path)
-        invoice_item_tax_value = float(invoice_item[-3].split("£")[1])
-        return round((invoice_item_tax_value / manifest_items_quantity), 2)
+        invoice_item_price = self.get_invoice_item_price(invoice_item)
+        tax_rate = self.set_tax_rate(invoice_item)
+        return round((invoice_item_price / manifest_items_quantity * tax_rate), 2)
+    
+    def set_tax_rate(self, invoice_item: list) -> float:
+        for item in reversed(invoice_item):
+            if "%" in item:
+                return float(item.split("%")[0]) / 100
+            return self.standard_tax_rate
         
-    def retrieve_manifest(self, manifest_id: str) -> str:
+    def retrieve_manifest_from_website(self, manifest_id: str) -> str | None:
         url = f"https://static.bodysocks.net/joblots/manifests/{manifest_id}.csv"
         page = requests.get(url)
+        if page.status_code != 200 or page.text.startswith("<html>"):
+            logger.error(f"Manifest {manifest_id} not found online.")
+            return None
         with open(self.input_manifest_path, "w", encoding="utf-8") as f:
             f.write(page.text)
         return self.input_manifest_path
+    
+    def search_manifest_in_local_drive(self, manifest_id: str) -> str | None:
+        manifest_path = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), f"input_data/manifests/{manifest_id}.csv"
+        )
+        if not os.path.exists(manifest_path):
+            logger.error(f"Manifest {manifest_id} not found locally.")
+            return None
+        print(manifest_path)
+        logger.info(f"Local manifest {manifest_id} found.")
+        return manifest_path
+    
+    def retrieve_manifest(self, manifest_id: str) -> str | None:
+        manifest_path = self.retrieve_manifest_from_website(manifest_id)
+        if not manifest_path:
+            manifest_path = self.search_manifest_in_local_drive(manifest_id)
+        return manifest_path
+    
 
     def convert_manifest(
         self,
@@ -117,7 +149,7 @@ class InvoiceProcessor:
         df["Total price netto"] = round((df["Price per item"] * df["Stock Quantity"]), 2)
         return df
 
-    def process_invoice_data(self, invoice_list: str, invoice_no: str, invoice_date: str) -> dict:
+    def process_invoice_data(self, invoice_list: str, invoice_no: str, invoice_date: str) -> dict | bool:
         df_combined = pd.DataFrame()
         output_csv_path = os.path.join(
             os.path.dirname(os.path.realpath(__file__)),
@@ -126,7 +158,10 @@ class InvoiceProcessor:
         for item in invoice_list:
             manifest_id = item[1]
             manifest_path = self.retrieve_manifest(manifest_id)
+            if not manifest_path:
+                return False
             manifest_item_price = self.get_manifest_item_price(item, manifest_path)
+            manifest_item_tax_value = self.get_manifest_item_tax_value(item, manifest_path)
             df = self.convert_manifest(
                 invoice_date, invoice_no, item, manifest_path, manifest_item_price, manifest_item_tax_value
             )
@@ -147,7 +182,7 @@ class InvoiceProcessor:
         if os.path.exists(main_table_path) and os.path.getsize(main_table_path) > 0:
             df_main = pd.read_csv(main_table_path, index_col=0)
             if invoice_no in df_main["Invoice No"].values:
-                print(f"Data for invoice {invoice_no} already exists in main table.")
+                logger.info(f"Data for invoice {invoice_no} already exists in main table.")
                 return
             if not df_main.empty:
                 df_main = df_main._append(df, ignore_index=True)
@@ -156,3 +191,14 @@ class InvoiceProcessor:
                     return
         with open(main_table_path, "w") as f:
                 f.write(df.to_csv())
+
+
+processor = InvoiceProcessor()
+# invoice_str = processor.convert_invoice_to_str_and_list_tuple("app/input_data/invoice_JL202747.pdf")
+# invoice_no = processor.get_invoice_no(invoice_str[0])
+# invoice_date = processor.get_invoice_date(invoice_str[0])
+
+# # print(processor.process_invoice_data(invoice_str[1], invoice_no, invoice_date))
+
+# print(processor.retrieve_manifest_from_website("NP-YELLOW928"))
+print(processor.retrieve_manifest("LPNWE194529470"))
