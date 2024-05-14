@@ -6,7 +6,7 @@ from app.backend.processor import DataProcessor
 from tkinter import Label
 import logging
 import os
-from settings import BASE_DIR
+from paths import BASE_DIR
 
 
 logger = logging.getLogger(__name__)

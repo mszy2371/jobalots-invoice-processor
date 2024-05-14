@@ -3,7 +3,7 @@ import os
 import csv
 import logging
 from app.backend.invoice import Invoice
-from settings import MANIFEST_URL_BASE, BASE_DIR
+from paths import MANIFEST_URL_BASE, BASE_DIR
 
 logger = logging.getLogger(__name__)
 

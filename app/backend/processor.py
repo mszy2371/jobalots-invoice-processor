@@ -4,7 +4,7 @@ import csv
 import logging
 from app.backend.invoice import Invoice
 from app.backend.manifest import Manifest
-from settings import BASE_DIR
+from paths import BASE_DIR
 
 
 logger = logging.getLogger(__name__)
@@ -25,8 +25,6 @@ class DataProcessor:
         manifest_item_tax_value: float,
     ) -> pd.DataFrame:
         manifest_id: str = self.manifest.clean_manifest_id(invoice_item[1])
-        print("❤️❤️❤️", manifest_id)
-        print("🧡🧡🧡", invoice_item)
         output_manifest_path = os.path.join(self.manifest.local_manifest_dir, f"{manifest_id}-{invoice_no}.csv")
         with open(input_csv_path, "r", encoding="utf-8") as csv_reader, open(
             output_manifest_path, "w", encoding="utf-8"
@@ -58,7 +56,6 @@ class DataProcessor:
         df["Price per item + tax"] = round((df["Price per item"] + df["Tax per item"]), 2)
         df["Total price netto"] = round((df["Price per item"] * df["Stock Quantity"]), 2)
         df["Total tax"] = round(df["Total price netto"] * invoice_item_tax_rate, 2)
-        print("👍👍👍", df)
         return df
 
     def process_invoice_data(self, invoice_list: str, invoice_no: str, invoice_date: str) -> dict | bool:
