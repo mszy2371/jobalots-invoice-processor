@@ -88,18 +88,12 @@ def select_files():
 
 
 if __name__ == "__main__":
-    # open_button = ttk.Button(
-    #     root,
-    #     text="Open Files",
-    #     command=select_files,
-    # )
-    # open_button.pack(expand=True, ipadx=20, ipady=20)
-
-    # root.mainloop()
-    
-    data_processor = DataProcessor()
-
-    data_processor.process_whole_folder(
-        os.path.join(BASE_DIR, "app", "input_data", "invoices_2023"),
-        os.path.join(BASE_DIR, "app", "output_data"),
+    open_button = ttk.Button(
+        root,
+        text="Open Files",
+        command=select_files,
     )
+    open_button.pack(expand=True, ipadx=20, ipady=20)
+
+    root.mainloop()
+    
