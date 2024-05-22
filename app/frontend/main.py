@@ -4,30 +4,22 @@ from tkinter import filedialog as fd
 from tkinter.messagebox import showinfo
 from app.backend.processor import DataProcessor
 from tkinter import Label
-import logging
+from app.backend.app_logging import logger
 import os
 from paths import BASE_DIR
+from app.utils.messages import select_message
 
 
-logger = logging.getLogger(__name__)
 
 
-# create the root window
+
+# creating the root window
 root = tk.Tk()
-root.title("File Dialog")
-root.resizable(False, False)
-root.geometry("600x400")
+root.title("Invoice Processor")
+root.resizable(True, True)
+root.geometry("800x600")
 
 data_processor = DataProcessor()
-
-def select_message(invoice_no, output_key) -> str:
-    outputs = {
-        "done": f"{invoice_no} - Done!",
-        "invoice exists": f"{invoice_no} - Invoice already exists in table, nothing added to main table",
-        "empty": f"{invoice_no} - No data to process, empty file",
-        "partially done": f"{invoice_no} - Partially done, some manifests missing, check logs",
-    }
-    return outputs[output_key]
 
 
 def select_files():
@@ -46,7 +38,7 @@ def select_files():
             return
 
         output_file = fd.askopenfilename(
-            title="choose output file or `Cancel` to create a new file",
+            title="choose output file or `Cancel` to create a NEW FILE:",
             initialdir=init_dir_output,
             filetypes=(("csv files", "*.csv"),),
         )
@@ -74,8 +66,14 @@ def select_files():
         else:
             showinfo(title="Error", message="You must select input file")
         if input_file and output_file:
+            processing_info = Label(
+                root, text="Processing, please wait...", wraplength=500, anchor="n", justify="center", font=("Arial", 26)
+            )
+            processing_info.pack(expand=True, ipadx=20, ipady=20)
+            root.update_idletasks()
             invoice_no, output = data_processor.add_data_to_main_table(input_file, output_file)
             message = select_message(invoice_no, output)
+            processing_info.pack_forget()
             done_info = Label(
                 root, text=message, wraplength=500, justify="center", font=("Arial", 26)
             )
