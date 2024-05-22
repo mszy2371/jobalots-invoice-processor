@@ -15,9 +15,9 @@ from app.utils.messages import select_message
 
 # creating the root window
 root = tk.Tk()
-root.title("File Dialog")
-root.resizable(False, False)
-root.geometry("600x400")
+root.title("Invoice Processor")
+root.resizable(True, True)
+root.geometry("800x600")
 
 data_processor = DataProcessor()
 
@@ -38,7 +38,7 @@ def select_files():
             return
 
         output_file = fd.askopenfilename(
-            title="choose output file or `Cancel` to create a new file",
+            title="choose output file or `Cancel` to create a NEW FILE:",
             initialdir=init_dir_output,
             filetypes=(("csv files", "*.csv"),),
         )
@@ -66,8 +66,14 @@ def select_files():
         else:
             showinfo(title="Error", message="You must select input file")
         if input_file and output_file:
+            processing_info = Label(
+                root, text="Processing, please wait...", wraplength=500, anchor="n", justify="center", font=("Arial", 26)
+            )
+            processing_info.pack(expand=True, ipadx=20, ipady=20)
+            root.update_idletasks()
             invoice_no, output = data_processor.add_data_to_main_table(input_file, output_file)
             message = select_message(invoice_no, output)
+            processing_info.pack_forget()
             done_info = Label(
                 root, text=message, wraplength=500, justify="center", font=("Arial", 26)
             )

@@ -39,6 +39,8 @@ class Manifest:
         if page.status_code != 200 or page.text.startswith("<html>"):
             logger.warning(f"Manifest {manifest_id} not found online.")
             return None
+        if not os.path.exists(self.local_manifest_dir):
+            os.makedirs(self.local_manifest_dir)
         saving_dir = os.path.join(self.local_manifest_dir, f"{manifest_id}.csv")
         with open(saving_dir, "w", encoding="utf-8") as f:
             f.write(page.text)
