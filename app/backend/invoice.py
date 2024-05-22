@@ -1,8 +1,5 @@
-import logging
 import fitz
 
-
-logger = logging.getLogger(__name__)
 
 class Invoice:
     def __init__(self, standard_tax_rate=0.2):

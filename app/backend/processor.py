@@ -1,14 +1,11 @@
 import pandas as pd
 import os
 import csv
-import logging
+from app.backend.app_logging import logger
 from app.backend.invoice import Invoice
 from app.backend.manifest import Manifest
 from paths import BASE_DIR, EMPTY_MANIFEST, MISSING_MANIFESTS_DIR
 
-
-
-logger = logging.getLogger(__name__)
 
 class DataProcessor:
     def __init__(self):
@@ -100,7 +97,7 @@ class DataProcessor:
         if os.path.exists(main_table_path) and os.path.getsize(main_table_path) > 0:
             df_main = pd.read_csv(main_table_path, index_col=0)
             if "Invoice No" in df_main.keys() and invoice_no in df_main["Invoice No"].values:
-                logger.info(f"Data for invoice {invoice_no} already exists in main table.")
+                logger.info("Data for invoice %s already exists in main table.", invoice_no)
                 return invoice_no, "invoice exists"
             if not df_main.empty:
                 df_main = df_main._append(df, ignore_index=True)
@@ -121,5 +118,5 @@ class DataProcessor:
                 input_file = os.path.join(input_folder, file)
                 output_file = os.path.join(output_folder, output_file)
                 self.add_data_to_main_table(input_file, output_file)
-        logger.info("All files processed.")
+        logger.info("All files from processed.")
         return

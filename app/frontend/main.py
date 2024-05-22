@@ -4,13 +4,13 @@ from tkinter import filedialog as fd
 from tkinter.messagebox import showinfo
 from app.backend.processor import DataProcessor
 from tkinter import Label
-import logging
+from app.backend.app_logging import logger
 import os
 from paths import BASE_DIR
 from app.utils.messages import select_message
 
 
-logger = logging.getLogger(__name__)
+
 
 
 # creating the root window

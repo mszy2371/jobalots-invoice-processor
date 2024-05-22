@@ -1,12 +1,9 @@
 import requests
 import os
 import csv
-import logging
+from app.backend.app_logging import logger
 from app.backend.invoice import Invoice
 from paths import MANIFEST_URL_BASE, BASE_DIR
-
-logger = logging.getLogger(__name__)
-
 
 class Manifest:
     def __init__(self):
@@ -40,7 +37,7 @@ class Manifest:
         url = os.path.join(MANIFEST_URL_BASE, f"{manifest_id}.csv")
         page = requests.get(url)
         if page.status_code != 200 or page.text.startswith("<html>"):
-            logger.error(f"Manifest {manifest_id} not found online.")
+            logger.warning(f"Manifest {manifest_id} not found online.")
             return None
         saving_dir = os.path.join(self.local_manifest_dir, f"{manifest_id}.csv")
         with open(saving_dir, "w", encoding="utf-8") as f:
@@ -52,7 +49,7 @@ class Manifest:
             self.local_manifest_dir, f"{manifest_id}.csv"
         )
         if not os.path.exists(manifest_path):
-            logger.error(f"Manifest {manifest_id} not found locally.")
+            logger.warning(f"Manifest {manifest_id} not found locally.")
             return None
         logger.info(f"Local manifest {manifest_id} found.")
         return manifest_path
