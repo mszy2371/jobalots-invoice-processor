@@ -7,27 +7,19 @@ from tkinter import Label
 import logging
 import os
 from paths import BASE_DIR
+from app.utils.messages import select_message
 
 
 logger = logging.getLogger(__name__)
 
 
-# create the root window
+# creating the root window
 root = tk.Tk()
 root.title("File Dialog")
 root.resizable(False, False)
 root.geometry("600x400")
 
 data_processor = DataProcessor()
-
-def select_message(invoice_no, output_key) -> str:
-    outputs = {
-        "done": f"{invoice_no} - Done!",
-        "invoice exists": f"{invoice_no} - Invoice already exists in table, nothing added to main table",
-        "empty": f"{invoice_no} - No data to process, empty file",
-        "partially done": f"{invoice_no} - Partially done, some manifests missing, check logs",
-    }
-    return outputs[output_key]
 
 
 def select_files():
