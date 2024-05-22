@@ -1,16 +1,11 @@
-import logging
 import fitz
 
-
-logger = logging.getLogger(__name__)
 
 class Invoice:
     def __init__(self, standard_tax_rate=0.2):
         self.standard_tax_rate = standard_tax_rate
-    
-    def convert_to_str_and_list_tuple(
-        self, invoice_path: str
-    ) -> tuple[str, list]:
+
+    def convert_to_str_and_list_tuple(self, invoice_path: str) -> tuple[str, list]:
         invoice_list = []
         all_text = ""
         doc = fitz.open(invoice_path)
@@ -40,10 +35,9 @@ class Invoice:
             return float(price_str.split("£")[1])
         except TypeError:
             return 0.0
-        
+
     def get_tax_rate(self, invoice_item: list) -> float:
         for item in reversed(invoice_item):
             if "%" in item:
                 return float(item.split("%")[0]) / 100
             return self.standard_tax_rate
-
