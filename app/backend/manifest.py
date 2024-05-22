@@ -21,7 +21,7 @@ class Manifest:
                 if index == 0:
                     continue
                 else:
-                    quantity = int(row[4]) if row[4] else 0
+                    quantity = int(float(row[4])) if row[4] else 0
                     total += quantity
         return total
 

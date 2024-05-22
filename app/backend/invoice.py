@@ -22,7 +22,7 @@ class Invoice:
             )
             for table in page_tables:
                 item = table.extract()
-                if len(item) > 2:
+                if len(item[0]) > 2:
                     invoice_list.extend(item)
         return all_text, invoice_list
 
