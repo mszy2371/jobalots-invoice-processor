@@ -78,6 +78,7 @@ class DataProcessor:
         missing_manifests_path = os.path.join(
             MISSING_MANIFESTS_DIR, f"for_{invoice_no}.txt"
         )
+        missing_manifests_path = os.path.join(MISSING_MANIFESTS_DIR, f"for_{invoice_no}.txt")
         if os.path.exists(missing_manifests_path):
             os.remove(missing_manifests_path)
         for item in invoice_list:
@@ -152,5 +153,6 @@ class DataProcessor:
                 input_file = os.path.join(input_folder, file)
                 output_file = os.path.join(output_folder, output_file)
                 self.add_data_to_main_table(input_file, output_file)
-        logger.info("All files from processed.")
+        logger.info("All files processed.")
         return
+
