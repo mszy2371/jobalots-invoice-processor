@@ -7,6 +7,7 @@ from app.backend.manifest import Manifest
 from paths import BASE_DIR, EMPTY_MANIFEST, MISSING_MANIFESTS_DIR
 
 
+
 logger = logging.getLogger(__name__)
 
 class DataProcessor:
