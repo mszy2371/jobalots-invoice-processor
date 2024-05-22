@@ -1,4 +1,3 @@
-
 def select_message(invoice_no, output_key) -> str:
     outputs = {
         "done": f"{invoice_no} - Done!",
