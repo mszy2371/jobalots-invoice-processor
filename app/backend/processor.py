@@ -4,7 +4,7 @@ import csv
 import logging
 from app.backend.invoice import Invoice
 from app.backend.manifest import Manifest
-from paths import BASE_DIR
+from paths import BASE_DIR, EMPTY_MANIFEST, MISSING_MANIFESTS_DIR
 
 
 logger = logging.getLogger(__name__)
@@ -58,46 +58,67 @@ class DataProcessor:
         df["Total tax"] = round(df["Total price netto"] * invoice_item_tax_rate, 2)
         return df
 
-    def process_invoice_data(self, invoice_list: str, invoice_no: str, invoice_date: str) -> dict | bool:
+    def process_invoice_data(self, invoice_list: str, invoice_no: str, invoice_date: str) -> tuple[pd.DataFrame, bool]:
         df_combined = pd.DataFrame()
+        is_partially_missing = False
         output_csv_path = os.path.join(
             BASE_DIR,
             "app", "output_data", f"data_for_{invoice_no}_from_{invoice_date}.csv",
         )
+        missing_manifests_path = os.path.join(MISSING_MANIFESTS_DIR, f"for_{invoice_no}.txt")
+        if os.path.exists(missing_manifests_path):
+            os.remove(missing_manifests_path)
         for item in invoice_list:
             manifest_id = self.manifest.clean_manifest_id(item[1])
             manifest_path = self.manifest.retrieve_manifest(manifest_id)
             if not manifest_path:
-                manifest_path = os.path.join(
-            BASE_DIR, "empty_manifest.csv")
-                with open(f"missing_manifests.txt", "a") as f:
-                    f.write(f"{invoice_no}:{manifest_id}\n")
+                manifest_path = EMPTY_MANIFEST
+                is_partially_missing = True
+                with open(missing_manifests_path, "a") as f:
+                    f.write(f"{manifest_id}: {item}\n")
             invoice_item_tax_rate = self.invoice.get_tax_rate(item)
             manifest_item_price = self.manifest.get_item_price(item, manifest_path)
             manifest_item_tax_value = self.manifest.get_item_tax_value(item, manifest_path)
             df = self.convert_data(
                 invoice_date, invoice_no, item, invoice_item_tax_rate, manifest_path, manifest_item_price, manifest_item_tax_value
             )
-            df_combined = df_combined._append(df, ignore_index=True)
+            if not df.empty:
+                df_combined = df_combined._append(df, ignore_index=True)
         with open(output_csv_path, "w") as f:
             f.write(df_combined.to_csv())
-        return df_combined
+        return df_combined, is_partially_missing
     
-    def add_data_to_main_table(self, invoice_path: str, main_table_path: str):
+    def add_data_to_main_table(self, invoice_path: str, main_table_path: str) -> tuple[str, str]:
         invoice_str, invoice_list = self.invoice.convert_to_str_and_list_tuple(invoice_path)
         invoice_date = self.invoice.get_date(invoice_str)
         invoice_no = self.invoice.get_invoice_no(invoice_str)
-        df = self.process_invoice_data(invoice_list, invoice_no, invoice_date)
+        processed_data = self.process_invoice_data(invoice_list, invoice_no, invoice_date)
+        df = processed_data[0]
+        if df.empty:
+            return invoice_no, "empty"
         if os.path.exists(main_table_path) and os.path.getsize(main_table_path) > 0:
             df_main = pd.read_csv(main_table_path, index_col=0)
             if "Invoice No" in df_main.keys() and invoice_no in df_main["Invoice No"].values:
                 logger.info(f"Data for invoice {invoice_no} already exists in main table.")
-                return
+                return invoice_no, "invoice exists"
             if not df_main.empty:
                 df_main = df_main._append(df, ignore_index=True)
                 with open(main_table_path, "w") as f:
                     f.write(df_main.to_csv())
-                    return
+                    return invoice_no, "done"
         with open(main_table_path, "w") as f:
                 f.write(df.to_csv())
+                if processed_data[1]:
+                    return invoice_no, "partially done"
+                return invoice_no, "done"
                 
+                
+    def process_whole_folder(self, input_folder: str, output_folder: str, output_file: str) -> None:
+        sorted_files = sorted(os.listdir(input_folder))
+        for file in sorted_files:
+            if file in os.listdir(input_folder) and file.endswith(".pdf"):
+                input_file = os.path.join(input_folder, file)
+                output_file = os.path.join(output_folder, output_file)
+                self.add_data_to_main_table(input_file, output_file)
+        logger.info("All files processed.")
+        return

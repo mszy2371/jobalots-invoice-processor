@@ -20,6 +20,15 @@ root.geometry("600x400")
 
 data_processor = DataProcessor()
 
+def select_message(invoice_no, output_key) -> str:
+    outputs = {
+        "done": f"{invoice_no} - Done!",
+        "invoice exists": f"{invoice_no} - Invoice already exists in table, nothing added to main table",
+        "empty": f"{invoice_no} - No data to process, empty file",
+        "partially done": f"{invoice_no} - Partially done, some manifests missing, check logs",
+    }
+    return outputs[output_key]
+
 
 def select_files():
     try:
@@ -65,15 +74,16 @@ def select_files():
         else:
             showinfo(title="Error", message="You must select input file")
         if input_file and output_file:
-            data_processor.add_data_to_main_table(input_file, output_file)
+            invoice_no, output = data_processor.add_data_to_main_table(input_file, output_file)
+            message = select_message(invoice_no, output)
             done_info = Label(
-                root, text="Done!", wraplength=500, justify="center", font=("Arial", 26)
+                root, text=message, wraplength=500, justify="center", font=("Arial", 26)
             )
             done_info.pack(expand=True, ipadx=20, ipady=20)
-            done_info.after(4000, done_info.destroy)
+            done_info.after(12000, done_info.destroy)
     except Exception as exc:
         showinfo(title="Error", message=exc)
-        print(exc.with_traceback())
+        logger.error(exc.with_traceback(exc.__traceback__))
         return
 
 
@@ -86,3 +96,4 @@ if __name__ == "__main__":
     open_button.pack(expand=True, ipadx=20, ipady=20)
 
     root.mainloop()
+    
