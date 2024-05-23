@@ -41,3 +41,4 @@ class Invoice:
             if "%" in item:
                 return float(item.split("%")[0]) / 100
             return self.standard_tax_rate
+

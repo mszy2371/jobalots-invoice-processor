@@ -14,7 +14,7 @@ class Manifest:
         )
 
     def get_items_quantity(self, manifest_path) -> int:
-        total = 1
+        total = 0
         with open(manifest_path, "r", encoding="utf-8") as csv_reader:
             reader = csv.reader(csv_reader)
             for index, row in enumerate(reader):
