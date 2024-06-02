@@ -148,10 +148,10 @@ class DataProcessor:
         self, input_folder: str, output_folder: str, output_file: str
     ) -> None:
         sorted_files = sorted(os.listdir(input_folder))
+        output_file = os.path.join(output_folder, output_file)
         for file in sorted_files:
+            input_file = os.path.join(input_folder, file)
             if file in os.listdir(input_folder) and file.endswith(".pdf"):
-                input_file = os.path.join(input_folder, file)
-                output_file = os.path.join(output_folder, output_file)
                 self.add_data_to_main_table(input_file, output_file)
         logger.info("All files processed.")
         return

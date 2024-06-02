@@ -28,12 +28,16 @@ class Manifest:
     def get_item_price(self, invoice_item: list, manifest_path: str) -> float:
         invoice_item_price = self.invoice.get_item_price(invoice_item)
         manifest_items_quantity = self.get_items_quantity(manifest_path)
+        if manifest_items_quantity == 0:
+            return 0.0
         return round((invoice_item_price / manifest_items_quantity), 2)
 
     def get_item_tax_value(self, invoice_item: list, manifest_path: str) -> float:
         manifest_items_quantity = self.get_items_quantity(manifest_path)
         invoice_item_price = self.invoice.get_item_price(invoice_item)
         tax_rate = self.invoice.get_tax_rate(invoice_item)
+        if manifest_items_quantity == 0:
+            return 0.0
         return round((invoice_item_price / manifest_items_quantity * tax_rate), 2)
 
     def retrieve_from_website(self, manifest_id: str) -> str | None:
