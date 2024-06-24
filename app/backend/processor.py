@@ -4,7 +4,7 @@ import csv
 from app.backend.app_logging import logger
 from app.backend.invoice import Invoice
 from app.backend.manifest import Manifest
-from paths import BASE_DIR, EMPTY_MANIFEST, MISSING_MANIFESTS_DIR
+from paths import BASE_DIR, EMPTY_MANIFEST, MISSING_MANIFESTS_DIR, PROCESSED_DATA_DIR
 
 
 class DataProcessor:
@@ -69,16 +69,15 @@ class DataProcessor:
     ) -> tuple[pd.DataFrame, bool]:
         df_combined = pd.DataFrame()
         is_partially_missing = False
+        if not os.path.exists(PROCESSED_DATA_DIR):
+            os.mkdir(PROCESSED_DATA_DIR)
         output_csv_path = os.path.join(
-            BASE_DIR,
-            "app",
-            "output_data",
+            PROCESSED_DATA_DIR,
             f"data_for_{invoice_no}_from_{invoice_date}.csv",
         )
         missing_manifests_path = os.path.join(
             MISSING_MANIFESTS_DIR, f"for_{invoice_no}.txt"
         )
-        missing_manifests_path = os.path.join(MISSING_MANIFESTS_DIR, f"for_{invoice_no}.txt")
         if os.path.exists(missing_manifests_path):
             os.remove(missing_manifests_path)
         for item in invoice_list:
@@ -155,4 +154,6 @@ class DataProcessor:
                 self.add_data_to_main_table(input_file, output_file)
         logger.info("All files processed.")
         return
+
+
 
