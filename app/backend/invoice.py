@@ -13,11 +13,12 @@ class Invoice:
             text = page.get_text()
             all_text += text
             page_tables = page.find_tables(
-                snap_tolerance=2,
+                snap_y_tolerance=2,
+                snap_x_tolerance=1,
             )
             for table in page_tables:
                 item = table.extract()
-                if len(item[0]) > 2:
+                if len(item[0]) > 2 and item[0][0] and item[0][0].startswith("Jobalots"):
                     invoice_list.extend(item)
         return all_text, invoice_list
 
@@ -41,3 +42,4 @@ class Invoice:
             if "%" in item:
                 return float(item.split("%")[0]) / 100
             return self.standard_tax_rate
+
