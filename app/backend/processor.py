@@ -156,3 +156,9 @@ class DataProcessor:
         return
 
 
+# processor = DataProcessor()
+# processor.process_whole_folder(
+#     "/home/marcinek/projekty/jobalots_invoices/app/input_data/invoices/invoices_from_06_04_2024",
+#     "app/output_data/processed_data",
+#     "data_up_to_05_04_2025.csv",
+# )
