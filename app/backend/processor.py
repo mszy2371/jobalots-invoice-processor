@@ -4,7 +4,7 @@ import csv
 from app.backend.app_logging import logger
 from app.backend.invoice import Invoice
 from app.backend.manifest import Manifest
-from paths import BASE_DIR, EMPTY_MANIFEST, MISSING_MANIFESTS_DIR, PROCESSED_DATA_DIR
+from paths import EMPTY_MANIFEST, MISSING_MANIFESTS_DIR, PROCESSED_DATA_DIR
 
 
 class DataProcessor:
@@ -154,6 +154,5 @@ class DataProcessor:
                 self.add_data_to_main_table(input_file, output_file)
         logger.info("All files processed.")
         return
-
 
 
