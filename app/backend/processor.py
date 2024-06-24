@@ -155,4 +155,3 @@ class DataProcessor:
         logger.info("All files processed.")
         return
 
-
